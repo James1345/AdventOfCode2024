@@ -12,7 +12,13 @@ public abstract class Day5
                 .Where(it => it.IsValid(ruleset))
                 .Sum(it => it.MiddleValue)
             );
-
+        
+        Console.WriteLine(
+            updates
+                .Where(it => !it.IsValid(ruleset))
+                .Select(it => it.CorrectOrderForRuleset(ruleset))
+                .Sum(it => it.MiddleValue)
+        );
     }
     
     private static (RuleSet, List<Update>) Parse(string filename)
@@ -69,32 +75,45 @@ public abstract class Day5
             return true;
         }
 
-        
+        public Update CorrectOrderForRuleset(RuleSet ruleSet)
+        {
+            var pages = _pages.ToArray();
+            Array.Sort(pages, ruleSet);
+            return new Update(pages.ToList());
+        }
     }
 
-    private class RuleSet
+    private class RuleSet : IComparer<int>
     {
-        public readonly Dictionary<int, HashSet<int>> RulesByFirst;
         public readonly Dictionary<int, HashSet<int>> RulesBySecond;
 
         public RuleSet(List<PageOrderingRule> rules)
         {
-            RulesByFirst = new Dictionary<int, HashSet<int>>();
             RulesBySecond = new Dictionary<int, HashSet<int>>();
             foreach (var (first, second) in rules)
             {
-                if (!RulesByFirst.ContainsKey(first))
-                {
-                    RulesByFirst[first] = new HashSet<int>();
-                }
-                RulesByFirst[first].Add(second);
-
                 if (!RulesBySecond.ContainsKey(second))
                 {
                     RulesBySecond[second] = new HashSet<int>();
                 }
+                
                 RulesBySecond[second].Add(first);
             }
+        }
+
+        public int Compare(int x, int y)
+        {
+            if(x == y) return 0;
+            if (RulesBySecond.TryGetValue(x, out var rulesXSecond))
+            {
+                if (rulesXSecond.Contains(y)) return 1;
+            }
+            
+            if (RulesBySecond.TryGetValue(y, out var rulesYSecond))
+            {
+                if (rulesYSecond.Contains(x)) return -1;
+            }
+            return 0;
         }
     }
 }
