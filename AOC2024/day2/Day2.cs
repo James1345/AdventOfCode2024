@@ -5,17 +5,22 @@ public abstract class Day2
     public static void Invoke()
     {
         var input = File.ReadAllLines("day2/input.txt");
-        var reports = input.Select(Report.Parse);
+        var reports = input.Select(Report.Parse).ToList();
         Console.WriteLine(reports.Count(it => it.Safe));
+        
+        Console.WriteLine(reports.Count(it => it.SafeIfDamped));
     }
 
     private class Report
     {
         private readonly List<int> _levelIntervals = [];
+        private readonly List<int> _levels;
 
         public Report(IEnumerable<int> levels)
         {
-            using var enumerator = levels.GetEnumerator();
+            _levels = levels.ToList();
+            
+            using var enumerator = _levels.GetEnumerator();
             enumerator.MoveNext();
             var current = enumerator.Current;
             while (enumerator.MoveNext())
@@ -30,6 +35,20 @@ public abstract class Day2
         {
             return new Report(input.Split(' ').Select(int.Parse));
         }
+
+        public List<Report> Damped()
+        {
+            var result = new List<Report>();
+            for (var i = 0; i < _levels.Count; i++)
+            {
+                var levels = new List<int>(_levels);
+                levels.RemoveAt(i);
+                result.Add(new Report(levels));
+            }
+            return result;
+        }
+        
+        public bool SafeIfDamped => Safe || Damped().Any(it => it.Safe);
 
         public bool Safe => SingleDirection && DifferenceIsSafe;
 
