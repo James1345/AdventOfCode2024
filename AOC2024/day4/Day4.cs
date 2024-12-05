@@ -15,7 +15,7 @@ public abstract class Day4
         Console.WriteLine(grid.CountMasCross());
     }
 }
-
+ 
 public enum Direction
 {
     North,
