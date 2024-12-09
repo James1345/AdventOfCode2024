@@ -10,7 +10,83 @@ public class Day9
         var memory = Memory.Parse(input);
         memory.Compress();
         Console.WriteLine(memory.Checksum());
+        
+        var nmem = NMemory.Parse(input);
+        nmem.Compress();
+        Console.WriteLine(nmem.Checksum());
     }
+
+    private class NMemory(List<FileSpan> files, List<FreeSpan> free)
+    {
+        public static NMemory Parse(string input)
+        {
+            int id = 0;
+            int ptr = 0;
+            var isFileMode = true;
+            
+            var files = new List<FileSpan>();
+            var free = new List<FreeSpan>();
+            
+            foreach (var fragment in input)
+            {
+                var length = int.Parse(fragment.ToString());
+
+                if (isFileMode)
+                {
+                    files.Add(new FileSpan(ptr, length, id));
+                    id++;
+                    ptr += length;
+                }
+                else
+                {
+                    free.Add(new FreeSpan(ptr, length));
+                    ptr += length;
+                }
+
+                isFileMode = !isFileMode;
+            }
+            
+            return new NMemory(files, free);
+        }
+
+        public void Compress()
+        {
+            foreach (var file in files.OrderByDescending(it => it.Id))
+            {
+                foreach (var freeSpan in free.OrderBy(it => it.Start))
+                {
+                    if(freeSpan.Size < file.Size) continue;
+                    if(freeSpan.Start > file.Start) continue;
+                    
+                    file.Start = freeSpan.Start;
+                    
+                    freeSpan.Size -= file.Size;
+                    freeSpan.Start += file.Size;
+
+                    if (freeSpan.Size == 0)
+                    {
+                        free.Remove(freeSpan);
+                    }
+                    break;
+                }
+            }
+        }
+
+        public long Checksum() => files.Sum(it => it.Checksum());
+    }
+
+    private record FileSpan(int Start, int Size, int Id)
+    {
+        public long Checksum() => Enumerable.Range(Start, Size).Sum(i => (long)i * Id);
+        public int Start { get; set; } = Start;
+    }
+
+    private record FreeSpan(int Start, int Size)
+    {
+        public int Start { get; set; } = Start;
+        public int Size { get; set; } = Size;
+    }
+
 
     private class Memory(List<IMemoryBlock> blocks)
     {
@@ -44,6 +120,7 @@ public class Day9
             {
                 if (blocks[i] is FileBlock file) sum += (long)file.Id * i;
             }
+
             return sum;
         }
 
@@ -51,7 +128,8 @@ public class Day9
         {
             List<IMemoryBlock> blocks = [];
             int id = 0;
-            var mode = FileBlock.Mode;            foreach (var fragment in input)
+            var mode = FileBlock.Mode;
+            foreach (var fragment in input)
             {
                 var length = int.Parse(fragment.ToString());
 
@@ -61,8 +139,9 @@ public class Day9
                     {
                         blocks.Add(new FileBlock(id));
                     }
+
                     mode = FreeBlock.Mode;
-                    id++;    
+                    id++;
                 }
                 else if (mode == FreeBlock.Mode)
                 {
@@ -70,6 +149,7 @@ public class Day9
                     {
                         blocks.Add(FreeBlock.Instance);
                     }
+
                     mode = FileBlock.Mode;
                 }
             }
@@ -82,7 +162,6 @@ public class Day9
             var builder = new StringBuilder();
             foreach (var block in blocks)
             {
-
                 if (block is FileBlock file)
                 {
                     builder.Append(file.Id);
@@ -97,19 +176,23 @@ public class Day9
         }
     }
 
-    private interface IMemoryBlock {}
+    private interface IMemoryBlock
+    {
+    }
 
     private record FileBlock(int Id) : IMemoryBlock
     {
         public static readonly int Mode = 0;
     };
+
     private class FreeBlock : IMemoryBlock
     {
         public static readonly int Mode = 1;
-        
-        private FreeBlock() {}
-        
+
+        private FreeBlock()
+        {
+        }
+
         public static readonly FreeBlock Instance = new();
     };
-    
 }
