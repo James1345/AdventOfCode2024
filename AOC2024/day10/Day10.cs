@@ -6,8 +6,10 @@ public class Day10
     {
         var input = File.ReadAllLines("day10/input.txt");
         var (map, trailheads) = ParseMap(input);
-        var score = trailheads.Sum(it => Score(map, it));
+        var score = trailheads.Sum(it => Score(map, it).score);
+        var rating = trailheads.Sum(it => Score(map, it).rating);
         Console.WriteLine(score);
+        Console.WriteLine(rating);
     }
     
     private static (Dictionary<Point2D, char>, HashSet<Point2D> trailheads) ParseMap(string[] input)
@@ -28,11 +30,12 @@ public class Day10
         
         return (map, trailheads);
     }
-
-    private static int Score(Dictionary<Point2D, char> map, Point2D trailhead)
+    
+    private static (int score, int rating) Score(Dictionary<Point2D, char> map, Point2D trailhead)
     {
         var q = new Queue<Point2D>();
         var trailends = new HashSet<Point2D>();
+        var rating = 0;
         
         q.Enqueue(trailhead);    
 
@@ -47,12 +50,16 @@ public class Day10
                 
                 if (nextz != z + 1) continue;
                 
-                if (nextz == 9) trailends.Add(next);
+                if (nextz == 9)
+                {
+                    trailends.Add(next);
+                    rating++;
+                }
                 else q.Enqueue(next);
             }
         }
         
-        return trailends.Count;
+        return (trailends.Count, rating);
     }
 
     private record Point2D(int X, int Y)
