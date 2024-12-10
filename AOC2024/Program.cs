@@ -1,4 +1,5 @@
 using AOC2024.day1;
+using AOC2024.day10;
 using AOC2024.day2;
 using AOC2024.day3;
 using AOC2024.day4;
@@ -24,4 +25,6 @@ using AOC2024.day9;
 
 // Day8.Invoke();
 
-Day9.Invoke();
+// Day9.Invoke();
+
+Day10.Invoke();
