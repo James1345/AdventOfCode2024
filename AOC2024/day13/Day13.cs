@@ -10,6 +10,9 @@ public class Day13
         var input = File.ReadAllLines("day13/input.txt");
         var conditions = Conditions.Parse(input);
         Console.WriteLine(conditions.Sum(it => it.Cost));
+        
+        conditions = conditions.Select(it => it with{X = it.X + 10000000000000, Y = it.Y + 10000000000000}).ToList();
+        Console.WriteLine(conditions.Sum(it => it.Cost));
     }
     
     private record Button(int X, int Y, int Cost);
