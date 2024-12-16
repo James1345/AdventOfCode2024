@@ -11,39 +11,59 @@ public partial class Day14
         var h = 103;
         var t = 100;
 
-//         input =
-// """
-// p=0,4 v=3,-3
-// p=6,3 v=-1,-3
-// p=10,3 v=-1,2
-// p=2,0 v=2,-1
-// p=0,0 v=1,3
-// p=3,0 v=-2,-2
-// p=7,6 v=-1,-3
-// p=3,0 v=-1,-2
-// p=9,3 v=2,3
-// p=7,3 v=-1,2
-// p=2,4 v=2,-3
-// p=9,5 v=-3,-3
-// """.Split("\n");
-//
-//         w = 11;
-//         h = 7;
-
-
-        var robots = input.Select(Robot.Parse);
+        var robots = input.Select(Robot.Parse).ToList();
         var quadrants = robots
             .GroupBy(it => it.Quadrant(t, w, h))
             .Where(it => it.Key != null)
             .Select(it => it.Count());
-        var score = quadrants.Aggregate(1L, (acc, cur) =>  acc * cur);
+        var score = quadrants.Aggregate(1L, (acc, cur) => acc * cur);
         Console.WriteLine(score);
+
+
+        // Hint from reddit because this question SUCKS!
+        
+        for (var t1 = 0; t1 < 100000; t1++)
+        {
+            var positions = robots.Select(it => it.PositionAt(t1, w, h)).ToHashSet();
+            foreach (var (x, y) in positions)
+            {
+                var cluster = new HashSet<(int x, int y)>();
+                for (int dx = -1; dx <= 1; dx++)
+                {
+                    for (int dy = -1; dy <= 1; dy++)
+                    {
+                        cluster.Add((x + dx, y + dy));
+                    }
+                }
+
+                if (positions.Intersect(cluster).Count() == 8)
+                {
+                    Console.WriteLine(t1);
+                    Display(positions, w, h);
+                }
+            }
+        }
     }
 
+    private static void Display(HashSet<(int x, int y)> positions, int w, int h)
+    {
+        for (int y = 0; y < h; y++)
+        {
+            for (int x = 0; x < w; x++)
+            {
+                if (positions.Contains((x, y)))
+                {
+                    Console.Write("#");
+                }
+                else Console.Write(" ");
+            }
+            Console.WriteLine();
+        }   
+    }
     private partial record Robot(int X0, int Y0, int Vx, int Vy)
     {
         public (int X, int Y) PositionAt(int t, int width, int height) => (
-            Rem(X0 +(Vx * t), width),
+            Rem(X0 + (Vx * t), width),
             Rem(Y0 + (Vy * t), height)
         );
 
